@@ -1,0 +1,1102 @@
+     1→"use client";
+     2→
+     3→import * as React from "react";
+     4→import {
+     5→  Card,
+     6→  CardContent,
+     7→  CardHeader,
+     8→  CardTitle,
+     9→} from "@/components/ui/card";
+    10→import { Button } from "@/components/ui/button";
+    11→import { Input } from "@/components/ui/input";
+    12→import { Label } from "@/components/ui/label";
+    13→import { Badge } from "@/components/ui/badge";
+    14→import {
+    15→  Select,
+    16→  SelectTrigger,
+    17→  SelectValue,
+    18→  SelectContent,
+    19→  SelectItem,
+    20→} from "@/components/ui/select";
+    21→import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+    22→import { useToast } from "@/hooks/use-toast";
+    23→import {
+    24→  Calculator,
+    25→  Copy,
+    26→  RotateCcw,
+    27→  Printer,
+    28→  Cake,
+    29→  Heart,
+    30→  Percent,
+    31→  Banknote,
+    32→  Receipt,
+    33→  TrendingUp,
+    34→  TrendingDown,
+    35→  Minus,
+    36→  Plus,
+    37→} from "lucide-react";
+    38→
+    39→// ─── Helper ───────────────────────────────────────────────────────────
+    40→function formatNumber(n: number, decimals = 2): string {
+    41→  return n.toLocaleString("en-IN", {
+    42→    minimumFractionDigits: decimals,
+    43→    maximumFractionDigits: decimals,
+    44→  });
+    45→}
+    46→
+    47→function copyToClipboard(text: string, label: string, toast: ReturnType<typeof useToast>["toast"]) {
+    48→  navigator.clipboard.writeText(text).then(() => {
+    49→    toast({ title: "Copied!", description: `${label} copied to clipboard.` });
+    50→  });
+    51→}
+    52→
+    53→// ─── 1. Age Calculator ────────────────────────────────────────────────
+    54→export function AgeCalculator() {
+    55→  const { toast } = useToast();
+    56→  const [dob, setDob] = React.useState<string>("");
+    57→  const [result, setResult] = React.useState<ReturnType<typeof calculateAge> | null>(null);
+    58→
+    59→  function calculateAge(dobStr: string) {
+    60→    const birth = new Date(dobStr);
+    61→    const now = new Date();
+    62→
+    63→    if (isNaN(birth.getTime()) || birth > now) return null;
+    64→
+    65→    let years = now.getFullYear() - birth.getFullYear();
+    66→    let months = now.getMonth() - birth.getMonth();
+    67→    let days = now.getDate() - birth.getDate();
+    68→
+    69→    if (days < 0) {
+    70→      months--;
+    71→      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    72→      days += prevMonth.getDate();
+    73→    }
+    74→    if (months < 0) {
+    75→      years--;
+    76→      months += 12;
+    77→    }
+    78→
+    79→    const totalMs = now.getTime() - birth.getTime();
+    80→    const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
+    81→    const totalHours = Math.floor(totalMs / (1000 * 60 * 60));
+    82→    const totalMinutes = Math.floor(totalMs / (1000 * 60));
+    83→    const totalSeconds = Math.floor(totalMs / 1000);
+    84→
+    85→    // Next birthday countdown
+    86→    let nextBirthday = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+    87→    if (nextBirthday <= now) {
+    88→      nextBirthday = new Date(now.getFullYear() + 1, birth.getMonth(), birth.getDate());
+    89→    }
+    90→    const countdownMs = nextBirthday.getTime() - now.getTime();
+    91→    const countdownDays = Math.floor(countdownMs / (1000 * 60 * 60 * 24));
+    92→    const countdownHours = Math.floor((countdownMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    93→
+    94→    return {
+    95→      years,
+    96→      months,
+    97→      days,
+    98→      totalDays,
+    99→      totalHours,
+   100→      totalMinutes,
+   101→      totalSeconds,
+   102→      countdownDays,
+   103→      countdownHours,
+   104→    };
+   105→  }
+   106→
+   107→  const handleCalculate = () => {
+   108→    const r = calculateAge(dob);
+   109→    if (r) setResult(r);
+   110→  };
+   111→
+   112→  const handleReset = () => {
+   113→    setDob("");
+   114→    setResult(null);
+   115→  };
+   116→
+   117→  const handleCopy = () => {
+   118→    if (!result) return;
+   119→    const text = `Age: ${result.years} years, ${result.months} months, ${result.days} days\nTotal days: ${result.totalDays.toLocaleString()}\nTotal hours: ${result.totalHours.toLocaleString()}\nTotal minutes: ${result.totalMinutes.toLocaleString()}\nTotal seconds: ${result.totalSeconds.toLocaleString()}`;
+   120→    copyToClipboard(text, "Age details", toast);
+   121→  };
+   122→
+   123→  const handlePrint = () => window.print();
+   124→
+   125→  return (
+   126→    <div className="space-y-6">
+   127→      <Card>
+   128→        <CardHeader>
+   129→          <CardTitle className="flex items-center gap-2">
+   130→            <Cake className="size-5 text-pink-500" />
+   131→            Age Calculator
+   132→          </CardTitle>
+   133→        </CardHeader>
+   134→        <CardContent className="space-y-4">
+   135→          <div className="grid gap-2">
+   136→            <Label htmlFor="age-dob">Date of Birth</Label>
+   137→            <Input
+   138→              id="age-dob"
+   139→              type="date"
+   140→              value={dob}
+   141→              onChange={(e) => setDob(e.target.value)}
+   142→              max={new Date().toISOString().split("T")[0]}
+   143→            />
+   144→          </div>
+   145→
+   146→          <div className="flex gap-2">
+   147→            <Button onClick={handleCalculate} disabled={!dob} className="gap-2">
+   148→              <Calculator className="size-4" />
+   149→              Calculate Age
+   150→            </Button>
+   151→            <Button variant="outline" onClick={handleReset} className="gap-2">
+   152→              <RotateCcw className="size-4" />
+   153→              Reset
+   154→            </Button>
+   155→          </div>
+   156→
+   157→          {result && (
+   158→            <>
+   159→              <div className="bg-muted/50 rounded-xl p-4 space-y-4">
+   160→                <div className="grid grid-cols-3 gap-3 text-center">
+   161→                  <div className="bg-background rounded-lg p-3">
+   162→                    <p className="text-3xl font-bold">{result.years}</p>
+   163→                    <p className="text-xs text-muted-foreground mt-1">Years</p>
+   164→                  </div>
+   165→                  <div className="bg-background rounded-lg p-3">
+   166→                    <p className="text-3xl font-bold">{result.months}</p>
+   167→                    <p className="text-xs text-muted-foreground mt-1">Months</p>
+   168→                  </div>
+   169→                  <div className="bg-background rounded-lg p-3">
+   170→                    <p className="text-3xl font-bold">{result.days}</p>
+   171→                    <p className="text-xs text-muted-foreground mt-1">Days</p>
+   172→                  </div>
+   173→                </div>
+   174→
+   175→                <div className="grid gap-2 text-sm">
+   176→                  <div className="flex justify-between py-1 border-b border-border/50">
+   177→                    <span className="text-muted-foreground">Total Days Lived</span>
+   178→                    <span className="font-medium">{result.totalDays.toLocaleString()}</span>
+   179→                  </div>
+   180→                  <div className="flex justify-between py-1 border-b border-border/50">
+   181→                    <span className="text-muted-foreground">Total Hours Lived</span>
+   182→                    <span className="font-medium">{result.totalHours.toLocaleString()}</span>
+   183→                  </div>
+   184→                  <div className="flex justify-between py-1 border-b border-border/50">
+   185→                    <span className="text-muted-foreground">Total Minutes Lived</span>
+   186→                    <span className="font-medium">{result.totalMinutes.toLocaleString()}</span>
+   187→                  </div>
+   188→                  <div className="flex justify-between py-1">
+   189→                    <span className="text-muted-foreground">Total Seconds Lived</span>
+   190→                    <span className="font-medium">{result.totalSeconds.toLocaleString()}</span>
+   191→                  </div>
+   192→                </div>
+   193→              </div>
+   194→
+   195→              <div className="bg-muted/50 rounded-xl p-4">
+   196→                <div className="flex items-center gap-2 mb-2">
+   197→                  <Heart className="size-4 text-red-500" />
+   198→                  <p className="text-sm font-medium">Next Birthday</p>
+   199→                </div>
+   200→                <p className="text-2xl font-bold">
+   201→                  {result.countdownDays} days{" "}
+   202→                  <span className="text-base font-normal text-muted-foreground">
+   203→                    and {result.countdownHours} hours
+   204→                  </span>
+   205→                </p>
+   206→              </div>
+   207→
+   208→              <div className="flex gap-2">
+   209→                <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
+   210→                  <Copy className="size-4" />
+   211→                  Copy
+   212→                </Button>
+   213→                <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
+   214→                  <Printer className="size-4" />
+   215→                  Print
+   216→                </Button>
+   217→              </div>
+   218→            </>
+   219→          )}
+   220→        </CardContent>
+   221→      </Card>
+   222→    </div>
+   223→  );
+   224→}
+   225→
+   226→// ─── 2. BMI Calculator ────────────────────────────────────────────────
+   227→export function BMICalculator() {
+   228→  const { toast } = useToast();
+   229→  const [unitSystem, setUnitSystem] = React.useState<"metric" | "imperial">("metric");
+   230→  const [weightKg, setWeightKg] = React.useState<string>("");
+   231→  const [weightLbs, setWeightLbs] = React.useState<string>("");
+   232→  const [heightCm, setHeightCm] = React.useState<string>("");
+   233→  const [heightFt, setHeightFt] = React.useState<string>("");
+   234→  const [heightIn, setHeightIn] = React.useState<string>("");
+   235→  const [result, setResult] = React.useState<{ bmi: number; category: string; color: string } | null>(null);
+   236→
+   237→  function getBmiCategory(bmi: number): { category: string; color: string } {
+   238→    if (bmi < 18.5) return { category: "Underweight", color: "bg-blue-500" };
+   239→    if (bmi < 25) return { category: "Normal", color: "bg-green-500" };
+   240→    if (bmi < 30) return { category: "Overweight", color: "bg-yellow-500" };
+   241→    return { category: "Obese", color: "bg-red-500" };
+   242→  }
+   243→
+   244→  const handleCalculate = () => {
+   245→    let bmi: number | null = null;
+   246→
+   247→    if (unitSystem === "metric") {
+   248→      const w = parseFloat(weightKg);
+   249→      const h = parseFloat(heightCm);
+   250→      if (w > 0 && h > 0) {
+   251→        const hm = h / 100;
+   252→        bmi = w / (hm * hm);
+   253→      }
+   254→    } else {
+   255→      const w = parseFloat(weightLbs);
+   256→      const ft = parseFloat(heightFt) || 0;
+   257→      const inc = parseFloat(heightIn) || 0;
+   258→      const totalInches = ft * 12 + inc;
+   259→      if (w > 0 && totalInches > 0) {
+   260→        bmi = (w / (totalInches * totalInches)) * 703;
+   261→      }
+   262→    }
+   263→
+   264→    if (bmi !== null && isFinite(bmi)) {
+   265→      const { category, color } = getBmiCategory(bmi);
+   266→      setResult({ bmi, category, color });
+   267→    }
+   268→  };
+   269→
+   270→  const handleReset = () => {
+   271→    setWeightKg("");
+   272→    setWeightLbs("");
+   273→    setHeightCm("");
+   274→    setHeightFt("");
+   275→    setHeightIn("");
+   276→    setResult(null);
+   277→  };
+   278→
+   279→  const handleCopy = () => {
+   280→    if (!result) return;
+   281→    copyToClipboard(
+   282→      `BMI: ${formatNumber(result.bmi, 1)}\nCategory: ${result.category}`,
+   283→      "BMI result",
+   284→      toast
+   285→    );
+   286→  };
+   287→
+   288→  const bmiPosition = result ? Math.min(Math.max((result.bmi / 40) * 100, 0), 100) : 0;
+   289→
+   290→  return (
+   291→    <div className="space-y-6">
+   292→      <Card>
+   293→        <CardHeader>
+   294→          <CardTitle className="flex items-center gap-2">
+   295→            <Heart className="size-5 text-red-500" />
+   296→            BMI Calculator
+   297→          </CardTitle>
+   298→        </CardHeader>
+   299→        <CardContent className="space-y-4">
+   300→          <div className="grid gap-2">
+   301→            <Label>Unit System</Label>
+   302→            <Select
+   303→              value={unitSystem}
+   304→              onValueChange={(v) => {
+   305→                setUnitSystem(v as "metric" | "imperial");
+   306→                setResult(null);
+   307→              }}
+   308→            >
+   309→              <SelectTrigger className="w-full">
+   310→                <SelectValue />
+   311→              </SelectTrigger>
+   312→              <SelectContent>
+   313→                <SelectItem value="metric">Metric (kg / cm)</SelectItem>
+   314→                <SelectItem value="imperial">Imperial (lbs / ft+in)</SelectItem>
+   315→              </SelectContent>
+   316→            </Select>
+   317→          </div>
+   318→
+   319→          {unitSystem === "metric" ? (
+   320→            <div className="grid grid-cols-2 gap-4">
+   321→              <div className="grid gap-2">
+   322→                <Label htmlFor="bmi-weight-kg">Weight (kg)</Label>
+   323→                <Input
+   324→                  id="bmi-weight-kg"
+   325→                  type="number"
+   326→                  placeholder="e.g. 70"
+   327→                  value={weightKg}
+   328→                  onChange={(e) => setWeightKg(e.target.value)}
+   329→                  min={0}
+   330→                />
+   331→              </div>
+   332→              <div className="grid gap-2">
+   333→                <Label htmlFor="bmi-height-cm">Height (cm)</Label>
+   334→                <Input
+   335→                  id="bmi-height-cm"
+   336→                  type="number"
+   337→                  placeholder="e.g. 175"
+   338→                  value={heightCm}
+   339→                  onChange={(e) => setHeightCm(e.target.value)}
+   340→                  min={0}
+   341→                />
+   342→              </div>
+   343→            </div>
+   344→          ) : (
+   345→            <div className="grid grid-cols-3 gap-4">
+   346→              <div className="grid gap-2">
+   347→                <Label htmlFor="bmi-weight-lbs">Weight (lbs)</Label>
+   348→                <Input
+   349→                  id="bmi-weight-lbs"
+   350→                  type="number"
+   351→                  placeholder="e.g. 154"
+   352→                  value={weightLbs}
+   353→                  onChange={(e) => setWeightLbs(e.target.value)}
+   354→                  min={0}
+   355→                />
+   356→              </div>
+   357→              <div className="grid gap-2">
+   358→                <Label htmlFor="bmi-height-ft">Height (ft)</Label>
+   359→                <Input
+   360→                  id="bmi-height-ft"
+   361→                  type="number"
+   362→                  placeholder="e.g. 5"
+   363→                  value={heightFt}
+   364→                  onChange={(e) => setHeightFt(e.target.value)}
+   365→                  min={0}
+   366→                />
+   367→              </div>
+   368→              <div className="grid gap-2">
+   369→                <Label htmlFor="bmi-height-in">Height (in)</Label>
+   370→                <Input
+   371→                  id="bmi-height-in"
+   372→                  type="number"
+   373→                  placeholder="e.g. 9"
+   374→                  value={heightIn}
+   375→                  onChange={(e) => setHeightIn(e.target.value)}
+   376→                  min={0}
+   377→                />
+   378→              </div>
+   379→            </div>
+   380→          )}
+   381→
+   382→          <div className="flex gap-2">
+   383→            <Button onClick={handleCalculate} className="gap-2">
+   384→              <Calculator className="size-4" />
+   385→              Calculate BMI
+   386→            </Button>
+   387→            <Button variant="outline" onClick={handleReset} className="gap-2">
+   388→              <RotateCcw className="size-4" />
+   389→              Reset
+   390→            </Button>
+   391→          </div>
+   392→
+   393→          {result && (
+   394→            <>
+   395→              <div className="bg-muted/50 rounded-xl p-4 space-y-4">
+   396→                <div className="text-center">
+   397→                  <p className="text-5xl font-bold">{formatNumber(result.bmi, 1)}</p>
+   398→                  <Badge className="mt-2">{result.category}</Badge>
+   399→                </div>
+   400→
+   401→                {/* Visual BMI Scale */}
+   402→                <div className="space-y-2">
+   403→                  <div className="relative h-4 rounded-full overflow-hidden">
+   404→                    <div className="absolute inset-0 flex">
+   405→                      <div className="bg-blue-400 h-full" style={{ width: "46.25%" }} />
+   406→                      <div className="bg-green-400 h-full" style={{ width: "16.25%" }} />
+   407→                      <div className="bg-yellow-400 h-full" style={{ width: "12.5%" }} />
+   408→                      <div className="bg-red-400 h-full" style={{ width: "25%" }} />
+   409→                    </div>
+   410→                    <div
+   411→                      className="absolute top-0 h-full w-1 bg-foreground transition-all duration-300"
+   412→                      style={{ left: `${bmiPosition}%` }}
+   413→                    />
+   414→                  </div>
+   415→                  <div className="flex justify-between text-xs text-muted-foreground">
+   416→                    <span>0</span>
+   417→                    <span>18.5</span>
+   418→                    <span>25</span>
+   419→                    <span>30</span>
+   420→                    <span>40+</span>
+   421→                  </div>
+   422→                </div>
+   423→              </div>
+   424→
+   425→              <div className="flex gap-2">
+   426→                <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
+   427→                  <Copy className="size-4" />
+   428→                  Copy
+   429→                </Button>
+   430→              </div>
+   431→            </>
+   432→          )}
+   433→        </CardContent>
+   434→      </Card>
+   435→    </div>
+   436→  );
+   437→}
+   438→
+   439→// ─── 3. Percentage Calculator ─────────────────────────────────────────
+   440→export function PercentageCalculator() {
+   441→  const { toast } = useToast();
+   442→
+   443→  // Tab 1: What is X% of Y?
+   444→  const [pctOfX, setPctOfX] = React.useState<string>("");
+   445→  const [pctOfY, setPctOfY] = React.useState<string>("");
+   446→
+   447→  // Tab 2: X is what % of Y?
+   448→  const [whatPctX, setWhatPctX] = React.useState<string>("");
+   449→  const [whatPctY, setWhatPctY] = React.useState<string>("");
+   450→
+   451→  // Tab 3: % Change from X to Y
+   452→  const [changeX, setChangeX] = React.useState<string>("");
+   453→  const [changeY, setChangeY] = React.useState<string>("");
+   454→
+   455→  // Tab 4: X + Y% = ?
+   456→  const [addBase, setAddBase] = React.useState<string>("");
+   457→  const [addPct, setAddPct] = React.useState<string>("");
+   458→
+   459→  function calcPctOf() {
+   460→    const x = parseFloat(pctOfX);
+   461→    const y = parseFloat(pctOfY);
+   462→    if (!isNaN(x) && !isNaN(y)) return (x / 100) * y;
+   463→    return null;
+   464→  }
+   465→  function calcWhatPct() {
+   466→    const x = parseFloat(whatPctX);
+   467→    const y = parseFloat(whatPctY);
+   468→    if (!isNaN(x) && !isNaN(y) && y !== 0) return (x / y) * 100;
+   469→    return null;
+   470→  }
+   471→  function calcChange() {
+   472→    const x = parseFloat(changeX);
+   473→    const y = parseFloat(changeY);
+   474→    if (!isNaN(x) && !isNaN(y) && x !== 0) return ((y - x) / Math.abs(x)) * 100;
+   475→    return null;
+   476→  }
+   477→  function calcAdd() {
+   478→    const b = parseFloat(addBase);
+   479→    const p = parseFloat(addPct);
+   480→    if (!isNaN(b) && !isNaN(p)) return b + (b * p) / 100;
+   481→    return null;
+   482→  }
+   483→
+   484→  const r1 = calcPctOf();
+   485→  const r2 = calcWhatPct();
+   486→  const r3 = calcChange();
+   487→  const r4 = calcAdd();
+   488→
+   489→  const handleReset = () => {
+   490→    setPctOfX("");
+   491→    setPctOfY("");
+   492→    setWhatPctX("");
+   493→    setWhatPctY("");
+   494→    setChangeX("");
+   495→    setChangeY("");
+   496→    setAddBase("");
+   497→    setAddPct("");
+   498→  };
+   499→
+   500→  const handleCopy = (text: string) => {
+   501→    copyToClipboard(text, "Result", toast);
+   502→  };
+   503→
+   504→  return (
+   505→    <div className="space-y-6">
+   506→      <Card>
+   507→        <CardHeader>
+   508→          <CardTitle className="flex items-center gap-2">
+   509→            <Percent className="size-5 text-blue-500" />
+   510→            Percentage Calculator
+   511→          </CardTitle>
+   512→        </CardHeader>
+   513→        <CardContent className="space-y-4">
+   514→          <Tabs defaultValue="of" className="w-full">
+   515→            <TabsList className="w-full grid grid-cols-4">
+   516→              <TabsTrigger value="of" className="text-xs sm:text-sm">X% of Y</TabsTrigger>
+   517→              <TabsTrigger value="what" className="text-xs sm:text-sm">X is ?% of Y</TabsTrigger>
+   518→              <TabsTrigger value="change" className="text-xs sm:text-sm">% Change</TabsTrigger>
+   519→              <TabsTrigger value="add" className="text-xs sm:text-sm">X + Y%</TabsTrigger>
+   520→            </TabsList>
+   521→
+   522→            {/* Tab 1: What is X% of Y? */}
+   523→            <TabsContent value="of" className="space-y-4 pt-2">
+   524→              <div className="grid grid-cols-2 gap-4">
+   525→                <div className="grid gap-2">
+   526→                  <Label htmlFor="pct-of-x">Percentage (%)</Label>
+   527→                  <Input
+   528→                    id="pct-of-x"
+   529→                    type="number"
+   530→                    placeholder="e.g. 25"
+   531→                    value={pctOfX}
+   532→                    onChange={(e) => setPctOfX(e.target.value)}
+   533→                  />
+   534→                </div>
+   535→                <div className="grid gap-2">
+   536→                  <Label htmlFor="pct-of-y">Of Value</Label>
+   537→                  <Input
+   538→                    id="pct-of-y"
+   539→                    type="number"
+   540→                    placeholder="e.g. 200"
+   541→                    value={pctOfY}
+   542→                    onChange={(e) => setPctOfY(e.target.value)}
+   543→                  />
+   544→                </div>
+   545→              </div>
+   546→              {r1 !== null && (
+   547→                <div className="bg-muted/50 rounded-xl p-4 flex items-center justify-between">
+   548→                  <div>
+   549→                    <p className="text-sm text-muted-foreground">Result</p>
+   550→                    <p className="text-2xl font-bold">{formatNumber(r1)}</p>
+   551→                  </div>
+   552→                  <Button
+   553→                    variant="ghost"
+   554→                    size="icon"
+   555→                    onClick={() => handleCopy(formatNumber(r1))}
+   556→                  >
+   557→                    <Copy className="size-4" />
+   558→                  </Button>
+   559→                </div>
+   560→              )}
+   561→            </TabsContent>
+   562→
+   563→            {/* Tab 2: X is what % of Y? */}
+   564→            <TabsContent value="what" className="space-y-4 pt-2">
+   565→              <div className="grid grid-cols-2 gap-4">
+   566→                <div className="grid gap-2">
+   567→                  <Label htmlFor="what-pct-x">Value (X)</Label>
+   568→                  <Input
+   569→                    id="what-pct-x"
+   570→                    type="number"
+   571→                    placeholder="e.g. 50"
+   572→                    value={whatPctX}
+   573→                    onChange={(e) => setWhatPctX(e.target.value)}
+   574→                  />
+   575→                </div>
+   576→                <div className="grid gap-2">
+   577→                  <Label htmlFor="what-pct-y">Total (Y)</Label>
+   578→                  <Input
+   579→                    id="what-pct-y"
+   580→                    type="number"
+   581→                    placeholder="e.g. 200"
+   582→                    value={whatPctY}
+   583→                    onChange={(e) => setWhatPctY(e.target.value)}
+   584→                  />
+   585→                </div>
+   586→              </div>
+   587→              {r2 !== null && (
+   588→                <div className="bg-muted/50 rounded-xl p-4 flex items-center justify-between">
+   589→                  <div>
+   590→                    <p className="text-sm text-muted-foreground">Result</p>
+   591→                    <p className="text-2xl font-bold">{formatNumber(r2)}%</p>
+   592→                  </div>
+   593→                  <Button
+   594→                    variant="ghost"
+   595→                    size="icon"
+   596→                    onClick={() => handleCopy(formatNumber(r2) + "%")}
+   597→                  >
+   598→                    <Copy className="size-4" />
+   599→                  </Button>
+   600→                </div>
+   601→              )}
+   602→            </TabsContent>
+   603→
+   604→            {/* Tab 3: % Change from X to Y */}
+   605→            <TabsContent value="change" className="space-y-4 pt-2">
+   606→              <div className="grid grid-cols-2 gap-4">
+   607→                <div className="grid gap-2">
+   608→                  <Label htmlFor="change-x">From (X)</Label>
+   609→                  <Input
+   610→                    id="change-x"
+   611→                    type="number"
+   612→                    placeholder="e.g. 100"
+   613→                    value={changeX}
+   614→                    onChange={(e) => setChangeX(e.target.value)}
+   615→                  />
+   616→                </div>
+   617→                <div className="grid gap-2">
+   618→                  <Label htmlFor="change-y">To (Y)</Label>
+   619→                  <Input
+   620→                    id="change-y"
+   621→                    type="number"
+   622→                    placeholder="e.g. 150"
+   623→                    value={changeY}
+   624→                    onChange={(e) => setChangeY(e.target.value)}
+   625→                  />
+   626→                </div>
+   627→              </div>
+   628→              {r3 !== null && (
+   629→                <div className="bg-muted/50 rounded-xl p-4 flex items-center justify-between">
+   630→                  <div>
+   631→                    <p className="text-sm text-muted-foreground">Change</p>
+   632→                    <div className="flex items-center gap-2">
+   633→                      <p className="text-2xl font-bold">{formatNumber(Math.abs(r3))}%</p>
+   634→                      {r3 > 0 ? (
+   635→                        <TrendingUp className="size-5 text-green-500" />
+   636→                      ) : r3 < 0 ? (
+   637→                        <TrendingDown className="size-5 text-red-500" />
+   638→                      ) : (
+   639→                        <Minus className="size-5 text-muted-foreground" />
+   640→                      )}
+   641→                    </div>
+   642→                  </div>
+   643→                  <Button
+   644→                    variant="ghost"
+   645→                    size="icon"
+   646→                    onClick={() => handleCopy(`${r3 > 0 ? "+" : ""}${formatNumber(r3)}%`)}
+   647→                  >
+   648→                    <Copy className="size-4" />
+   649→                  </Button>
+   650→                </div>
+   651→              )}
+   652→            </TabsContent>
+   653→
+   654→            {/* Tab 4: X + Y% = ? */}
+   655→            <TabsContent value="add" className="space-y-4 pt-2">
+   656→              <div className="grid grid-cols-2 gap-4">
+   657→                <div className="grid gap-2">
+   658→                  <Label htmlFor="add-base">Base Value (X)</Label>
+   659→                  <Input
+   660→                    id="add-base"
+   661→                    type="number"
+   662→                    placeholder="e.g. 1000"
+   663→                    value={addBase}
+   664→                    onChange={(e) => setAddBase(e.target.value)}
+   665→                  />
+   666→                </div>
+   667→                <div className="grid gap-2">
+   668→                  <Label htmlFor="add-pct">Percentage (Y%)</Label>
+   669→                  <Input
+   670→                    id="add-pct"
+   671→                    type="number"
+   672→                    placeholder="e.g. 15"
+   673→                    value={addPct}
+   674→                    onChange={(e) => setAddPct(e.target.value)}
+   675→                  />
+   676→                </div>
+   677→              </div>
+   678→              {r4 !== null && (
+   679→                <div className="bg-muted/50 rounded-xl p-4 flex items-center justify-between">
+   680→                  <div>
+   681→                    <p className="text-sm text-muted-foreground">Result</p>
+   682→                    <p className="text-2xl font-bold">{formatNumber(r4)}</p>
+   683→                  </div>
+   684→                  <Button
+   685→                    variant="ghost"
+   686→                    size="icon"
+   687→                    onClick={() => handleCopy(formatNumber(r4))}
+   688→                  >
+   689→                    <Copy className="size-4" />
+   690→                  </Button>
+   691→                </div>
+   692→              )}
+   693→            </TabsContent>
+   694→          </Tabs>
+   695→
+   696→          <Button variant="outline" onClick={handleReset} className="gap-2">
+   697→            <RotateCcw className="size-4" />
+   698→            Reset All
+   699→          </Button>
+   700→        </CardContent>
+   701→      </Card>
+   702→    </div>
+   703→  );
+   704→}
+   705→
+   706→// ─── 4. Loan EMI Calculator ───────────────────────────────────────────
+   707→export function LoanEMICalculator() {
+   708→  const { toast } = useToast();
+   709→  const [loanAmount, setLoanAmount] = React.useState<string>("");
+   710→  const [interestRate, setInterestRate] = React.useState<string>("");
+   711→  const [tenure, setTenure] = React.useState<string>("");
+   712→  const [tenureUnit, setTenureUnit] = React.useState<"years" | "months">("years");
+   713→  const [result, setResult] = React.useState<{
+   714→    emi: number;
+   715→    totalInterest: number;
+   716→    totalPayment: number;
+   717→    principalPercent: number;
+   718→    interestPercent: number;
+   719→  } | null>(null);
+   720→
+   721→  const handleCalculate = () => {
+   722→    const P = parseFloat(loanAmount);
+   723→    const annualRate = parseFloat(interestRate);
+   724→    const N = parseFloat(tenure);
+   725→
+   726→    if (!P || P <= 0 || !annualRate || annualRate <= 0 || !N || N <= 0) return;
+   727→
+   728→    const months = tenureUnit === "years" ? N * 12 : N;
+   729→    const r = annualRate / 12 / 100;
+   730→
+   731→    let emi: number;
+   732→    if (r === 0) {
+   733→      emi = P / months;
+   734→    } else {
+   735→      const factor = Math.pow(1 + r, months);
+   736→      emi = (P * r * factor) / (factor - 1);
+   737→    }
+   738→
+   739→    const totalPayment = emi * months;
+   740→    const totalInterest = totalPayment - P;
+   741→    const principalPercent = (P / totalPayment) * 100;
+   742→    const interestPercent = (totalInterest / totalPayment) * 100;
+   743→
+   744→    setResult({ emi, totalInterest, totalPayment, principalPercent, interestPercent });
+   745→  };
+   746→
+   747→  const handleReset = () => {
+   748→    setLoanAmount("");
+   749→    setInterestRate("");
+   750→    setTenure("");
+   751→    setTenureUnit("years");
+   752→    setResult(null);
+   753→  };
+   754→
+   755→  const handleCopy = () => {
+   756→    if (!result) return;
+   757→    const text = `Monthly EMI: ${formatNumber(result.emi)}\nTotal Interest: ${formatNumber(result.totalInterest)}\nTotal Payment: ${formatNumber(result.totalPayment)}`;
+   758→    copyToClipboard(text, "EMI details", toast);
+   759→  };
+   760→
+   761→  const handlePrint = () => window.print();
+   762→
+   763→  return (
+   764→    <div className="space-y-6">
+   765→      <Card>
+   766→        <CardHeader>
+   767→          <CardTitle className="flex items-center gap-2">
+   768→            <Banknote className="size-5 text-green-500" />
+   769→            Loan EMI Calculator
+   770→          </CardTitle>
+   771→        </CardHeader>
+   772→        <CardContent className="space-y-4">
+   773→          <div className="grid gap-2">
+   774→            <Label htmlFor="loan-amount">Loan Amount</Label>
+   775→            <Input
+   776→              id="loan-amount"
+   777→              type="number"
+   778→              placeholder="e.g. 500000"
+   779→              value={loanAmount}
+   780→              onChange={(e) => setLoanAmount(e.target.value)}
+   781→              min={0}
+   782→            />
+   783→          </div>
+   784→
+   785→          <div className="grid gap-2">
+   786→            <Label htmlFor="interest-rate">Annual Interest Rate (%)</Label>
+   787→            <Input
+   788→              id="interest-rate"
+   789→              type="number"
+   790→              placeholder="e.g. 8.5"
+   791→              value={interestRate}
+   792→              onChange={(e) => setInterestRate(e.target.value)}
+   793→              min={0}
+   794→              step={0.1}
+   795→            />
+   796→          </div>
+   797→
+   798→          <div className="grid grid-cols-2 gap-4">
+   799→            <div className="grid gap-2">
+   800→              <Label htmlFor="loan-tenure">Loan Tenure</Label>
+   801→              <Input
+   802→                id="loan-tenure"
+   803→                type="number"
+   804→                placeholder="e.g. 20"
+   805→                value={tenure}
+   806→                onChange={(e) => setTenure(e.target.value)}
+   807→                min={0}
+   808→              />
+   809→            </div>
+   810→            <div className="grid gap-2">
+   811→              <Label>Tenure Unit</Label>
+   812→              <Select
+   813→                value={tenureUnit}
+   814→                onValueChange={(v) => setTenureUnit(v as "years" | "months")}
+   815→              >
+   816→                <SelectTrigger className="w-full">
+   817→                  <SelectValue />
+   818→                </SelectTrigger>
+   819→                <SelectContent>
+   820→                  <SelectItem value="years">Years</SelectItem>
+   821→                  <SelectItem value="months">Months</SelectItem>
+   822→                </SelectContent>
+   823→              </Select>
+   824→            </div>
+   825→          </div>
+   826→
+   827→          <div className="flex gap-2">
+   828→            <Button onClick={handleCalculate} className="gap-2">
+   829→              <Calculator className="size-4" />
+   830→              Calculate EMI
+   831→            </Button>
+   832→            <Button variant="outline" onClick={handleReset} className="gap-2">
+   833→              <RotateCcw className="size-4" />
+   834→              Reset
+   835→            </Button>
+   836→          </div>
+   837→
+   838→          {result && (
+   839→            <>
+   840→              <div className="bg-muted/50 rounded-xl p-4 space-y-4">
+   841→                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+   842→                  <div className="bg-background rounded-lg p-4 text-center">
+   843→                    <p className="text-xs text-muted-foreground">Monthly EMI</p>
+   844→                    <p className="text-2xl font-bold mt-1">{formatNumber(result.emi)}</p>
+   845→                  </div>
+   846→                  <div className="bg-background rounded-lg p-4 text-center">
+   847→                    <p className="text-xs text-muted-foreground">Total Interest</p>
+   848→                    <p className="text-2xl font-bold mt-1 text-red-500">
+   849→                      {formatNumber(result.totalInterest)}
+   850→                    </p>
+   851→                  </div>
+   852→                  <div className="bg-background rounded-lg p-4 text-center">
+   853→                    <p className="text-xs text-muted-foreground">Total Payment</p>
+   854→                    <p className="text-2xl font-bold mt-1">{formatNumber(result.totalPayment)}</p>
+   855→                  </div>
+   856→                </div>
+   857→
+   858→                {/* Visual breakdown bar */}
+   859→                <div className="space-y-2">
+   860→                  <p className="text-sm font-medium">Payment Breakdown</p>
+   861→                  <div className="flex h-6 rounded-full overflow-hidden">
+   862→                    <div
+   863→                      className="bg-primary flex items-center justify-center text-xs text-primary-foreground font-medium transition-all duration-500"
+   864→                      style={{ width: `${result.principalPercent}%` }}
+   865→                    >
+   866→                      {result.principalPercent.toFixed(1)}%
+   867→                    </div>
+   868→                    <div
+   869→                      className="bg-red-400 flex items-center justify-center text-xs text-white font-medium transition-all duration-500"
+   870→                      style={{ width: `${result.interestPercent}%` }}
+   871→                    >
+   872→                      {result.interestPercent.toFixed(1)}%
+   873→                    </div>
+   874→                  </div>
+   875→                  <div className="flex justify-between text-xs text-muted-foreground">
+   876→                    <div className="flex items-center gap-1.5">
+   877→                      <div className="size-3 rounded-sm bg-primary" />
+   878→                      Principal
+   879→                    </div>
+   880→                    <div className="flex items-center gap-1.5">
+   881→                      <div className="size-3 rounded-sm bg-red-400" />
+   882→                      Interest
+   883→                    </div>
+   884→                  </div>
+   885→                </div>
+   886→              </div>
+   887→
+   888→              <div className="flex gap-2">
+   889→                <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
+   890→                  <Copy className="size-4" />
+   891→                  Copy
+   892→                </Button>
+   893→                <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
+   894→                  <Printer className="size-4" />
+   895→                  Print
+   896→                </Button>
+   897→              </div>
+   898→            </>
+   899→          )}
+   900→        </CardContent>
+   901→      </Card>
+   902→    </div>
+   903→  );
+   904→}
+   905→
+   906→// ─── 5. GST Calculator ────────────────────────────────────────────────
+   907→export function GSTCalculator() {
+   908→  const { toast } = useToast();
+   909→  const [amount, setAmount] = React.useState<string>("");
+   910→  const [gstRate, setGstRate] = React.useState<string>("18");
+   911→  const [customRate, setCustomRate] = React.useState<string>("");
+   912→  const [mode, setMode] = React.useState<"add" | "remove">("add");
+   913→  const [result, setResult] = React.useState<{
+   914→    originalAmount: number;
+   915→    cgst: number;
+   916→    sgst: number;
+   917→    totalAmount: number;
+   918→    gstAmount: number;
+   919→  } | null>(null);
+   920→
+   921→  const effectiveRate = gstRate === "custom" ? parseFloat(customRate) || 0 : parseFloat(gstRate);
+   922→
+   923→  const handleCalculate = () => {
+   924→    const a = parseFloat(amount);
+   925→    const r = effectiveRate;
+   926→    if (!a || a <= 0 || r <= 0) return;
+   927→
+   928→    if (mode === "add") {
+   929→      const gstAmount = (a * r) / 100;
+   930→      const cgst = gstAmount / 2;
+   931→      const sgst = gstAmount / 2;
+   932→      setResult({
+   933→        originalAmount: a,
+   934→        cgst,
+   935→        sgst,
+   936→        gstAmount,
+   937→        totalAmount: a + gstAmount,
+   938→      });
+   939→    } else {
+   940→      // Remove GST: total = amount (inclusive). original = amount / (1 + rate/100)
+   941→      const originalAmount = a / (1 + r / 100);
+   942→      const gstAmount = a - originalAmount;
+   943→      const cgst = gstAmount / 2;
+   944→      const sgst = gstAmount / 2;
+   945→      setResult({
+   946→        originalAmount,
+   947→        cgst,
+   948→        sgst,
+   949→        gstAmount,
+   950→        totalAmount: a,
+   951→      });
+   952→    }
+   953→  };
+   954→
+   955→  const handleReset = () => {
+   956→    setAmount("");
+   957→    setGstRate("18");
+   958→    setCustomRate("");
+   959→    setMode("add");
+   960→    setResult(null);
+   961→  };
+   962→
+   963→  const handleCopy = () => {
+   964→    if (!result) return;
+   965→    const text = `Original: ${formatNumber(result.originalAmount)}\nCGST: ${formatNumber(result.cgst)}\nSGST: ${formatNumber(result.sgst)}\nGST: ${formatNumber(result.gstAmount)}\nTotal: ${formatNumber(result.totalAmount)}`;
+   966→    copyToClipboard(text, "GST details", toast);
+   967→  };
+   968→
+   969→  return (
+   970→    <div className="space-y-6">
+   971→      <Card>
+   972→        <CardHeader>
+   973→          <CardTitle className="flex items-center gap-2">
+   974→            <Receipt className="size-5 text-amber-500" />
+   975→            GST Calculator
+   976→          </CardTitle>
+   977→        </CardHeader>
+   978→        <CardContent className="space-y-4">
+   979→          {/* Mode toggle */}
+   980→          <div className="grid gap-2">
+   981→            <Label>Mode</Label>
+   982→            <div className="grid grid-cols-2 gap-2">
+   983→              <Button
+   984→                variant={mode === "add" ? "default" : "outline"}
+   985→                size="sm"
+   986→                onClick={() => { setMode("add"); setResult(null); }}
+   987→                className="gap-2"
+   988→              >
+   989→                <Plus className="size-4" />
+   990→                Add GST
+   991→              </Button>
+   992→              <Button
+   993→                variant={mode === "remove" ? "default" : "outline"}
+   994→                size="sm"
+   995→                onClick={() => { setMode("remove"); setResult(null); }}
+   996→                className="gap-2"
+   997→              >
+   998→                <Minus className="size-4" />
+   999→                Remove GST
+  1000→              </Button>
+  1001→            </div>
+  1002→          </div>
+  1003→
+  1004→          <div className="grid gap-2">
+  1005→            <Label htmlFor="gst-amount">
+  1006→              {mode === "add" ? "Base Amount" : "Amount (Incl. GST)"}
+  1007→            </Label>
+  1008→            <Input
+  1009→              id="gst-amount"
+  1010→              type="number"
+  1011→              placeholder="e.g. 10000"
+  1012→              value={amount}
+  1013→              onChange={(e) => setAmount(e.target.value)}
+  1014→              min={0}
+  1015→            />
+  1016→          </div>
+  1017→
+  1018→          <div className="grid gap-2">
+  1019→            <Label>GST Rate</Label>
+  1020→            <Select value={gstRate} onValueChange={setGstRate}>
+  1021→              <SelectTrigger className="w-full">
+  1022→                <SelectValue />
+  1023→              </SelectTrigger>
+  1024→              <SelectContent>
+  1025→                <SelectItem value="5">5%</SelectItem>
+  1026→                <SelectItem value="12">12%</SelectItem>
+  1027→                <SelectItem value="18">18%</SelectItem>
+  1028→                <SelectItem value="28">28%</SelectItem>
+  1029→                <SelectItem value="custom">Custom Rate</SelectItem>
+  1030→              </SelectContent>
+  1031→            </Select>
+  1032→          </div>
+  1033→
+  1034→          {gstRate === "custom" && (
+  1035→            <div className="grid gap-2">
+  1036→              <Label htmlFor="custom-gst-rate">Custom GST Rate (%)</Label>
+  1037→              <Input
+  1038→                id="custom-gst-rate"
+  1039→                type="number"
+  1040→                placeholder="e.g. 3"
+  1041→                value={customRate}
+  1042→                onChange={(e) => setCustomRate(e.target.value)}
+  1043→                min={0}
+  1044→                step={0.1}
+  1045→              />
+  1046→            </div>
+  1047→          )}
+  1048→
+  1049→          <div className="flex gap-2">
+  1050→            <Button onClick={handleCalculate} disabled={!amount} className="gap-2">
+  1051→              <Calculator className="size-4" />
+  1052→              Calculate
+  1053→            </Button>
+  1054→            <Button variant="outline" onClick={handleReset} className="gap-2">
+  1055→              <RotateCcw className="size-4" />
+  1056→              Reset
+  1057→            </Button>
+  1058→          </div>
+  1059→
+  1060→          {result && (
+  1061→            <>
+  1062→              <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+  1063→                <div className="grid grid-cols-2 gap-3">
+  1064→                  <div className="bg-background rounded-lg p-3">
+  1065→                    <p className="text-xs text-muted-foreground">Original Amount</p>
+  1066→                    <p className="text-lg font-bold mt-1">
+  1067→                      {formatNumber(result.originalAmount)}
+  1068→                    </p>
+  1069→                  </div>
+  1070→                  <div className="bg-background rounded-lg p-3">
+  1071→                    <p className="text-xs text-muted-foreground">Total GST ({effectiveRate}%)</p>
+  1072→                    <p className="text-lg font-bold mt-1 text-amber-600 dark:text-amber-400">
+  1073→                      {formatNumber(result.gstAmount)}
+  1074→                    </p>
+  1075→                  </div>
+  1076→                  <div className="bg-background rounded-lg p-3">
+  1077→                    <p className="text-xs text-muted-foreground">CGST ({effectiveRate / 2}%)</p>
+  1078→                    <p className="text-lg font-bold mt-1">{formatNumber(result.cgst)}</p>
+  1079→                  </div>
+  1080→                  <div className="bg-background rounded-lg p-3">
+  1081→                    <p className="text-xs text-muted-foreground">SGST ({effectiveRate / 2}%)</p>
+  1082→                    <p className="text-lg font-bold mt-1">{formatNumber(result.sgst)}</p>
+  1083→                  </div>
+  1084→                </div>
+  1085→
+  1086→                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
+  1087→                  <p className="text-sm text-muted-foreground">Total Amount</p>
+  1088→                  <p className="text-3xl font-bold mt-1">{formatNumber(result.totalAmount)}</p>
+  1089→                </div>
+  1090→              </div>
+  1091→
+  1092→              <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
+  1093→                <Copy className="size-4" />
+  1094→                Copy
+  1095→              </Button>
+  1096→            </>
+  1097→          )}
+  1098→        </CardContent>
+  1099→      </Card>
+  1100→    </div>
+  1101→  );
+  1102→}
