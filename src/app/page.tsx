@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useAppStore } from '@/store/app-store';
+import type { PageSlug, Tool } from '@/types';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { HomePage } from '@/components/home/homepage';
@@ -264,7 +265,110 @@ function Router() {
   }
 }
 
+// --- URL <-> Zustand state synchronization ---
+
+function getTargetUrl(page: PageSlug, tool?: Tool | null, blogSlug?: string | null, categorySlug?: string | null): string {
+  switch (page) {
+    case 'home': return '/';
+    case 'all-tools': return '/tools';
+    case 'categories': return '/categories';
+    case 'category-detail': return `/category/${categorySlug || ''}`;
+    case 'about': return '/about';
+    case 'contact': return '/contact';
+    case 'privacy': return '/privacy';
+    case 'terms': return '/terms';
+    case 'disclaimer': return '/disclaimer';
+    case 'blog': return '/blog';
+    case 'blog-post': return `/blog/${blogSlug || ''}`;
+    case 'search': return '/search';
+    case 'tool': return `/${tool?.slug || ''}`;
+    default: return '/';
+  }
+}
+
+function resolvePathToState(pathname: string) {
+  const p = pathname.replace(/\/+$/, ''); // remove trailing slash
+  if (p === '' || p === '/') return { page: 'home' as PageSlug, tool: null, blogSlug: null, categorySlug: null };
+
+  // Static pages
+  const staticMap: Record<string, PageSlug> = {
+    'tools': 'all-tools', 'categories': 'categories', 'about': 'about',
+    'contact': 'contact', 'privacy': 'privacy', 'terms': 'terms',
+    'disclaimer': 'disclaimer', 'blog': 'blog', 'admin': 'admin', 'search': 'search',
+  };
+  if (staticMap[p]) return { page: staticMap[p], tool: null, blogSlug: null, categorySlug: null };
+
+  // Category pages: /category/:slug
+  const catMatch = p.match(/^\/category\/([\w-]+)$/);
+  if (catMatch) return { page: 'category-detail' as PageSlug, tool: null, blogSlug: null, categorySlug: catMatch[1] };
+
+  // Blog post pages: /blog/:slug
+  const blogMatch = p.match(/^\/blog\/([\w-]+)$/);
+  if (blogMatch) return { page: 'blog-post' as PageSlug, tool: null, blogSlug: blogMatch[1], categorySlug: null };
+
+  // Tool pages: /:slug (top-level)
+  const tool = getToolBySlug(p.replace(/^\//, ''));
+  if (tool) return { page: 'tool' as PageSlug, tool, blogSlug: null, categorySlug: null };
+
+  return { page: 'home' as PageSlug, tool: null, blogSlug: null, categorySlug: null };
+}
+
 export default function Page() {
+  const { navigate, currentPage, currentTool, currentBlogSlug, currentCategorySlug } = useAppStore();
+  const isInitialMount = useRef(true);
+  const isNavigating = useRef(false);
+
+  // On mount: read the URL and sync Zustand state
+  useEffect(() => {
+    const { page, tool, blogSlug, categorySlug } = resolvePathToState(window.location.pathname);
+    if (page !== 'home') {
+      // Set state without triggering a URL push
+      useAppStore.setState({
+        currentPage: page,
+        currentTool: tool,
+        currentBlogSlug: blogSlug,
+        currentCategorySlug: categorySlug,
+        isMobileMenuOpen: false,
+        isSearchOpen: false,
+      });
+    }
+    isInitialMount.current = false;
+  }, []);
+
+  // Push URL on state change (skip the initial mount to avoid double push)
+  const syncUrl = useCallback(() => {
+    if (isInitialMount.current || isNavigating.current) return;
+    const url = getTargetUrl(currentPage, currentTool, currentBlogSlug, currentCategorySlug);
+    if (window.location.pathname !== url) {
+      window.history.pushState({}, '', url);
+    }
+  }, [currentPage, currentTool, currentBlogSlug, currentCategorySlug]);
+
+  useEffect(() => {
+    syncUrl();
+  }, [syncUrl]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      isNavigating.current = true;
+      const { page, tool, blogSlug, categorySlug } = resolvePathToState(window.location.pathname);
+      useAppStore.setState({
+        currentPage: page,
+        currentTool: tool,
+        currentBlogSlug: blogSlug,
+        currentCategorySlug: categorySlug,
+        isMobileMenuOpen: false,
+        isSearchOpen: false,
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Reset flag after state propagates
+      requestAnimationFrame(() => { isNavigating.current = false; });
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
