@@ -121,8 +121,36 @@ function ToolPage() {
     );
   }
 
+  const toolSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": currentTool.name,
+    "url": `https://toolverse.app/${currentTool.slug}`,
+    "description": currentTool.description,
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "isPartOf": {
+      "@type": "WebApplication",
+      "name": "ToolVerse",
+      "url": "https://toolverse.app"
+    }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://toolverse.app" },
+      { "@type": "ListItem", "position": 2, "name": currentTool.category, "item": `https://toolverse.app/category/${currentTool.categorySlug}` },
+      { "@type": "ListItem", "position": 3, "name": currentTool.name, "item": `https://toolverse.app/${currentTool.slug}` }
+    ]
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(toolSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Breadcrumbs */}
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
