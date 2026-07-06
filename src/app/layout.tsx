@@ -51,6 +51,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             "featureList": ["Calculators", "Converters", "Generators", "Developer Tools", "Image Tools", "PDF Tools", "Color Tools", "Text Tools"]
           })
         }} />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5504383665354221"
+     crossorigin="anonymous"></script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground font-sans`}>
         <ThemeProvider>
