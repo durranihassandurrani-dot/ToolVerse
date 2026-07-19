@@ -55,7 +55,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
      crossorigin="anonymous"></script>
         <script async="async" data-cfasync="false" src="https://pl30429650.effectivecpmnetwork.com/4b88dacd815486ba632aa165808e2641/invoke.js"></script>
 <div id="container-4b88dacd815486ba632aa165808e2641"></div>
-        <script>
+  <script dangerouslySetInnerHTML={{__html: `
   atOptions = {
     'key' : '98caa31a379d552f9f7db3fb199ada06',
     'format' : 'iframe',
@@ -63,9 +63,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     'width' : 300,
     'params' : {}
   };
-</script>
-<script src="https://www.highperformanceformat.com/98caa31a379d552f9f7db3fb199ada06/invoke.js"></script>
-
+`}} />
+<script src="https://www.highperformanceformat.com/98caa31a379d552f9f7db3
 
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground font-sans`}>
