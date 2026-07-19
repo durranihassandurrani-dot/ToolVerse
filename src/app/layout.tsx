@@ -57,6 +57,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground font-sans`}>
          <ThemeProvider>
+           <div style={{display: 'flex', justifyContent: 'center', padding: '10px 0'}}>
+  <script dangerouslySetInnerHTML={{__html: `
+    atOptions = {
+      'key' : '98caa31a379d552f9f7db3fb199ada06',
+      'format' : 'iframe',
+      'height' : 250,
+      'width' : 300,
+      'params' : {}
+    };
+  `}} />
+  <script src="https://www.highperformanceformat.com/98caa31a379d552f9f7db3fb199ada06/invoke.js"></script>
+</div>
            
         {children}
         
