@@ -53,6 +53,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         }} />
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5504383665354221"
      crossorigin="anonymous"></script>
+        <script async="async" data-cfasync="false" src="https://pl30429650.effectivecpmnetwork.com/4b88dacd815486ba632aa165808e2641/invoke.js"></script>
+<div id="container-4b88dacd815486ba632aa165808e2641"></div>
+
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground font-sans`}>
         <ThemeProvider>
