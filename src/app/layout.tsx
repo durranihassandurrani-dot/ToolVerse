@@ -60,6 +60,19 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div id="container-4b88dacd815486ba632aa165808e2641"></div>
         <ThemeProvider>
           {children}
+          <div style={{display: 'flex', justifyContent: 'center', margin: '20px 0'}}>
+  <script dangerouslySetInnerHTML={{__html: `
+    atOptions = {
+      'key' : '98caa31a379d552f9f7db3fb199ada06',
+      'format' : 'iframe',
+      'height' : 250,
+      'width' : 300,
+      'params' : {}
+    };
+  `}} />
+  <script
+    src="https://www.highperformanceformat.com/98caa31a379d552f9f7db3fb199ada06/invoke.js"></script>
+            </div>
           <Toaster />
         </ThemeProvider>
       </body>
